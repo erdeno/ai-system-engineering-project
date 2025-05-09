@@ -1,23 +1,126 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Review Analyzer</title>
+    <meta charset="UTF-8">
+    <title>Text Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 720px;
+            margin: auto;
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        textarea {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        button {
+            padding: 0.75rem;
+            font-size: 1rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .results {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .card {
+            flex: 1;
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .card h2 {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        .card .output {
+            font-size: 1.25rem;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .emoji {
+            font-size: 1.5rem;
+        }
+        .user-input {
+            margin-top: 1.5rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h2>Review Analyzer</h2>
-    <form method="post">
-        {% csrf_token %}
-        <textarea name="review" rows="5" cols="50" placeholder="Enter your review here"></textarea><br>
-        <button type="submit">Analyze</button>
-    </form>
+    <div class="container">
+        <h1>AI Text Analyzer</h1>
+        <form method="post">
+            {% csrf_token %}
+            <textarea name="user_input" rows="5" placeholder="Enter your review or text here...">{{ user_input|default_if_none:"" }}</textarea>
+            <button type="submit">Analyze</button>
+        </form>
 
-    {% if text %}
-        <h3>Original Review:</h3>
-        <p>{{ text }}</p>
-        <h3>Sentiment:</h3>
-        <p>{{ sentiment }}</p>
-        <h3>Generated Title:</h3>
-        <p>{{ title }}</p>
-    {% endif %}
+        {% if sentiment or title %}
+        <div class="results">
+            <div class="card">
+                <h2>Sentiment</h2>
+                <div class="output">
+                    {% if sentiment == 1 %}
+                        <span class="emoji">😊</span>
+                        <span>Positive</span>
+                    {% else %}
+                        <span class="emoji">😞</span>
+                        <span>Negative</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card">
+                <h2>Generated Title</h2>
+                <div class="output">
+                    {{ title }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user_input %}
+        <div class="user-input">
+            <strong>Your Text:</strong> "{{ user_input }}"
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>
