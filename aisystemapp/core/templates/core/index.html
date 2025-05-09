@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Review Analyzer</title>
+</head>
+<body>
+    <h2>Review Analyzer</h2>
+    <form method="post">
+        {% csrf_token %}
+        <textarea name="review" rows="5" cols="50" placeholder="Enter your review here"></textarea><br>
+        <button type="submit">Analyze</button>
+    </form>
+
+    {% if text %}
+        <h3>Original Review:</h3>
+        <p>{{ text }}</p>
+        <h3>Sentiment:</h3>
+        <p>{{ sentiment }}</p>
+        <h3>Generated Title:</h3>
+        <p>{{ title }}</p>
+    {% endif %}
+</body>
+</html>
