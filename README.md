@@ -11,6 +11,10 @@ This is a Django-based web application that takes a user's text input (e.g., a p
 - Stylish UI with emojis reflecting sentiment.
 - Clean and modern 2-panel layout for results.
 
+
+
+You can see our [MLFlow](https://dagshub.com/ramin.kazemi91/AIproject.mlflow/#/experiments/0/runs/f0e4f255749f4d138e33e4afa1bc8ac8) metrics in your browser.
+
 ---
 
 ## ⚙️ Setup Instructions

@@ -4,9 +4,9 @@ from django.conf import settings
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-import tensorflow as tf
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import Tokenizer
+from transformers import T5Tokenizer, T5ForConditionalGeneration
+import torch
+
 import numpy as np
 import os
 import pickle
@@ -14,14 +14,6 @@ import pickle
 
 # Construct the path
 MODEL_DIR = os.path.join(settings.BASE_DIR, 'tf_models')
-
-
-# Load tokenizers
-with open(os.path.join(MODEL_DIR, 'tokenizer_input.pkl'), 'rb') as f:
-    tokenizer_input = pickle.load(f)
-
-with open(os.path.join(MODEL_DIR, 'tokenizer_output.pkl'), 'rb') as f:
-    tokenizer_output = pickle.load(f)
 
 # Load sentiment analysis model
 with open(os.path.join(MODEL_DIR, 'sentiment_prediction_model.pkl'), 'rb') as f:
@@ -31,33 +23,44 @@ with open(os.path.join(MODEL_DIR, 'sentiment_prediction_model.pkl'), 'rb') as f:
 with open(os.path.join(MODEL_DIR, 'vectorizer.pkl'), 'rb') as f:
     sentiment_vectorizer = pickle.load(f)
 
+MODEL_DIR = "aisystemapp/tf_models/t5_model"
+TOKENIZER_DIR = "aisystemapp/tf_models/t5_tokenizer"
 
-# Load the title generation model
-title_model = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'title_prediction_model.h5'))
+def get_t5_model_and_tokenizer():
+    # Check if model and tokenizer are already saved
+    if not (os.path.exists(MODEL_DIR) and os.path.exists(TOKENIZER_DIR)):
+        print("Downloading and saving T5-small model and tokenizer...")
+        tokenizer = T5Tokenizer.from_pretrained("t5-small")
+        model = T5ForConditionalGeneration.from_pretrained("t5-small")
 
-# Title generation function
-MAX_INPUT_LEN = 300
-MAX_TARGET_LEN = 20
+        # Create directory structure
+        os.makedirs(MODEL_DIR, exist_ok=True)
+        os.makedirs(TOKENIZER_DIR, exist_ok=True)
 
-MAX_INPUT_LEN = 300
-MAX_TARGET_LEN = 20
+        # Save locally
+        tokenizer.save_pretrained(TOKENIZER_DIR)
+        model.save_pretrained(MODEL_DIR)
+    else:
+        print("Loading saved T5-small model and tokenizer...")
+        tokenizer = T5Tokenizer.from_pretrained(TOKENIZER_DIR)
+        model = T5ForConditionalGeneration.from_pretrained(MODEL_DIR)
 
-def generate_title(text):
-    sequence = tokenizer_input.texts_to_sequences([text])
-    padded = pad_sequences(sequence, maxlen=MAX_INPUT_LEN, padding='post')
-    output = np.zeros((1, MAX_TARGET_LEN))
-    output[0, 0] = tokenizer_output.word_index['<start>'] if '<start>' in tokenizer_output.word_index else 1
+    return model, tokenizer
 
-    for i in range(1, MAX_TARGET_LEN):
-        prediction = title_model.predict([padded, output], verbose=0)
-        next_word_id = np.argmax(prediction[0, i - 1])
-        output[0, i] = next_word_id
-        if next_word_id == tokenizer_output.word_index.get('<end>', 2):
-            break
 
-    predicted_sequence = [int(x) for x in output[0]]
-    predicted_words = [tokenizer_output.index_word.get(i, '') for i in predicted_sequence if i != 0]
-    return ' '.join(predicted_words).replace('<start>', '').replace('<end>', '').strip()
+t5_model, t5_tokenizer = get_t5_model_and_tokenizer()
+
+def generate_title_t5(text):
+    input_text = f"summarize: {text}"
+    inputs = t5_tokenizer.encode(input_text, return_tensors='pt', max_length=len(text), truncation=True)
+    
+    # Generate the title
+    outputs = t5_model.generate(inputs, max_length=20, num_beams=8, do_sample=True, early_stopping=True)
+    title = t5_tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    title = title.split('.')[0].capitalize()
+    
+    return title
 
 def index(request):
     sentiment = None
@@ -72,8 +75,8 @@ def index(request):
             sentiment = sentiment_model.predict(transformed)[0]
 
             # Title prediction
-            title = generate_title(user_input)
-            title = title.replace('<OOV>', '').strip().title()
+            title = generate_title_t5(user_input)
+            print(title)
 
     return render(request, "index.html", {
         "sentiment": sentiment,
