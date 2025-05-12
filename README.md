@@ -7,7 +7,7 @@ This is a Django-based web application that takes a user's text input (e.g., a p
 ## 📦 Features
 
 - Predicts **sentiment** (Positive or Negative) using a `.pkl` model.
-- Generates a **title** using a TensorFlow `.h5` model.
+- Generates a relevant **title** using the t5-small model from HuggingFace Transformers
 - Stylish UI with emojis reflecting sentiment.
 - Clean and modern 2-panel layout for results.
 
@@ -91,11 +91,10 @@ python manage.py test
 │   ├── urls.py
 │   └── tests.py
 ├── tf_models/
+│   ├── t5_model/               # Saved T5 model (auto-downloaded if not present)
+│   └── t5_tokenizer/           # Saved T5 tokenizer
 │   ├── sentiment_prediction_model.pkl
-│   ├── vectorizer.pkl
-│   ├── title_prediction_model.h5
-│   ├── tokenizer_input.pkl
-│   └── tokenizer_output.pkl
+│   └── vectorizer.pkl
 ├── manage.py
 ├── requirements.txt
 └── README.md
