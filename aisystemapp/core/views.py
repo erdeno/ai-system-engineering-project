@@ -23,6 +23,7 @@ with open(os.path.join(MODEL_DIR, 'sentiment_prediction_model.pkl'), 'rb') as f:
 with open(os.path.join(MODEL_DIR, 'vectorizer.pkl'), 'rb') as f:
     sentiment_vectorizer = pickle.load(f)
 
+# Load T5 Model. T5 stands for Text-To-Text Transfer Transformer.
 MODEL_DIR = "aisystemapp/tf_models/t5_model"
 TOKENIZER_DIR = "aisystemapp/tf_models/t5_tokenizer"
 
@@ -76,7 +77,6 @@ def index(request):
 
             # Title prediction
             title = generate_title_t5(user_input)
-            print(title)
 
     return render(request, "index.html", {
         "sentiment": sentiment,
